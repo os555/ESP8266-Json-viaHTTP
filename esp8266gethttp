@@ -1,0 +1,139 @@
+// First we include the libraries
+#include <ESP8266WiFi.h>
+#include <ArduinoJson.h>
+#include <ESP8266HTTPClient.h>
+
+
+#define WIFI_SSID       "XXXXXXX"
+#define WIFI_PASSWORD   "XXXXXXXXX"
+#define USE_SERIAL Serial
+
+HTTPClient http;  //Object of class HTTPClient
+
+void setup() {
+
+Serial.begin(9600);
+
+// Clear WiFi setting by disable
+ WiFi.disconnect();
+ WiFi.mode(WIFI_OFF);
+ WiFi.mode(WIFI_STA); //  wifi setting as Station mode
+  
+// Enables Wifi
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("connecting");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+    int i = i+1;
+    if(i==200){
+      break;
+    }
+  }
+  Serial.println();
+  Serial.print("connected: ");
+  Serial.println(WiFi.localIP());
+
+}
+
+
+
+void loop() {
+
+
+    HTTPClient http;
+    USE_SERIAL.print("[HTTP] begin...\n");
+    // configure traged server and url
+  
+    http.begin("http://192.168.1.12/test.html"); //HTTP
+
+    USE_SERIAL.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      USE_SERIAL.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        String payload = http.getString();
+        USE_SERIAL.println(payload);
+      }
+    } else {
+      USE_SERIAL.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  
+
+  delay(1000);
+}
+
+
+
+
+
+
+//
+//const char* root_ca= \
+//"-----BEGIN CERTIFICATE-----\n" \
+//"MIICiTCCAg+gAwIBAgIQH0evqmIAcFBUTAGem2OZKjAKBggqhkjOPQQDAzCBhTEL\n" \
+//"MAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UE\n" \
+//"BxMHU2FsZm9yZDEaMBgGA1UEChMRQ09NT0RPIENBIExpbWl0ZWQxKzApBgNVBAMT\n" \
+//"IkNPTU9ETyBFQ0MgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkwHhcNMDgwMzA2MDAw\n" \
+//"MDAwWhcNMzgwMTE4MjM1OTU5WjCBhTELMAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdy\n" \
+//"ZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgGA1UEChMRQ09N\n" \
+//"T0RPIENBIExpbWl0ZWQxKzApBgNVBAMTIkNPTU9ETyBFQ0MgQ2VydGlmaWNhdGlv\n" \
+//"biBBdXRob3JpdHkwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAAQDR3svdcmCFYX7deSR\n" \
+//"FtSrYpn1PlILBs5BAH+X4QokPB0BBO490o0JlwzgdeT6+3eKKvUDYEs2ixYjFq0J\n" \
+//"cfRK9ChQtP6IHG4/bC8vCVlbpVsLM5niwz2J+Wos77LTBumjQjBAMB0GA1UdDgQW\n" \
+//"BBR1cacZSBm8nZ3qQUfflMRId5nTeTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/\n" \
+//"BAUwAwEB/zAKBggqhkjOPQQDAwNoADBlAjEA7wNbeqy3eApyt4jf/7VGFAkK+qDm\n" \
+//"fQjGGoe9GKhzvSbKYAydzpmfz1wPMOG+FDHqAjAU9JM8SaczepBGR7NjfRObTrdv\n" \
+//"GDeAU/7dIOA1mjbRxwG55tzd8/8dLDoWV9mSOdY=\n" \
+//"-----END CERTIFICATE-----\n";
+//
+//const size_t bufferSize = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(6) + 2*JSON_OBJECT_SIZE(10) + 500;
+//DynamicJsonBuffer jsonBuffer(bufferSize);
+//
+//void loop() {
+//  
+//// Get JSON
+//
+//   // http.begin("https://eth.nanopool.org/api/v1/user/0xaaf94b90e5d5f64c12b899f23d5851d367f53ecf",root_ca);
+//http.begin("https://eth.nanopool.org/api/v1/user/0xaaf94b90e5d5f64c12b899f23d5851d367f53ecf","0E 9D 09 D6 A1 1A 27 12 14 1F 27 F8 40 9B 95 C5 88 7B 6D 09");
+//    
+//   // http.begin("http://jsonplaceholder.typicode.com/posts/1");
+//   
+//    int httpCode = http.GET();   
+//
+//    Serial.println(httpCode);
+//
+//    //Check the returning code                                                                  
+//    if (httpCode > 0) {
+//      
+//      // Get the request response payload
+//      String payload = http.getString();
+//      Serial.print(payload);
+////      JsonObject& root = jsonBuffer.parseObject(payload);
+////      
+////bool status = root["status"]; // true
+////
+////JsonObject& data = root["data"];
+////const char* data_account = data["account"]; // "0xaaf94b90e5d5f64c12b899f23d5851d367f53ecf"
+////const char* data_unconfirmed_balance = data["unconfirmed_balance"]; // "0.00000000"
+////const char* data_balance = data["balance"]; // "0.02324327"
+////const char* data_hashrate = data["hashrate"]; // "289.0"
+////
+////Serial.print(data_account);
+//     
+//  
+//    }
+//
+//   http.end();   //Close connection
+//
+//  delay(1000);
+//
+//}
